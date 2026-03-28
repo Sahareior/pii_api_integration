@@ -1,14 +1,32 @@
 import React, { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLogIn } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useLoginMutation } from "../../redux/features/auth/auth.api";
+import { toast } from "sonner";
 
 const Login = () => {
+  const [email, setEmail] = useState("admin@1source.chat");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const navigate = useNavigate();
+  const [login, { isLoading }] = useLoginMutation();
 
-  const handleLogin = () => {
-    navigate('/overview');
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await login({ email, password }).unwrap();
+      toast.success("Login successful!");
+      navigate('/overview');
+    } catch (err) {
+      toast.error(err?.data?.message || err?.data?.detail || "Login failed. Please check your credentials.");
+      console.error("Login error:", err);
+    }
   }
 
   return (
@@ -40,7 +58,8 @@ const Login = () => {
               <FiMail className="text-white mr-2" />
               <input
                 type="email"
-                defaultValue="admin@1source.chat"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-transparent outline-none text-sm"
               />
             </div>
@@ -56,6 +75,8 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-transparent outline-none text-sm"
               />
               <button
@@ -83,9 +104,19 @@ const Login = () => {
           </div>
 
           {/* Sign In Button */}
-          <button onClick={handleLogin} className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-gradient-to-r from-gray-300 to-gray-400 text-black font-medium hover:opacity-90 transition">
-            <FiLogIn />
-            Sign In
+          <button 
+            onClick={handleLogin} 
+            disabled={isLoading}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-gradient-to-r from-gray-300 to-gray-400 text-black font-medium hover:opacity-90 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isLoading ? (
+                <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></span>
+            ) : (
+                <>
+                    <FiLogIn />
+                    Sign In
+                </>
+            )}
           </button>
         </div>
       </div>
