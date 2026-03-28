@@ -22,51 +22,63 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from './redux/store.js';
 import { Toaster } from 'sonner';
-
+import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
+import PublicRoute from './components/auth/PublicRoute.jsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Login />
-  },
-  {
-    element: <DashboardHome />,
+    element: <PublicRoute />,
     children: [
       {
-        path: 'overview',
-        element: <Overview />
-      },
+        path: '',
+        element: <Login />
+      }
+    ]
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
       {
-        path: 'business',
-        element: <Businesses />
-      },
-      {
-        path: 'channels',
-        element: <Channels />
-      },
-      {
-        path: 'users',
-        element: <Users />
-      },
-      {
-        path: 'automations',
-        element: <Automation />
-      },
-      {
-        path: 'system',
-        element: <Settings />
-      },
-      {
-        path: 'profile',
-        element: <Profile />
-      },
-      {
-        path: 'terms',
-        element: <Terms />
-      },
-      {
-        path: 'privacy',
-        element: <Privacy />
+        element: <DashboardHome />,
+        children: [
+          {
+            path: 'overview',
+            element: <Overview />
+          },
+          {
+            path: 'business',
+            element: <Businesses />
+          },
+          {
+            path: 'channels',
+            element: <Channels />
+          },
+          {
+            path: 'users',
+            element: <Users />
+          },
+          {
+            path: 'automations',
+            element: <Automation />
+          },
+          {
+            path: 'system',
+            element: <Settings />
+          },
+          {
+            path: 'profile',
+            element: <Profile />
+          },
+          {
+            path: 'terms',
+            element: <Terms />
+          },
+          {
+            path: 'privacy',
+            element: <Privacy />
+          }
+        ]
       }
     ]
   },

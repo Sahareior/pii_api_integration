@@ -27,6 +27,14 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ['Businesses'],
     }),
 
+    deleteBusiness: builder.mutation({
+      query: ({ id }) => ({
+        url: `/api/v1/communication/workspaces/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Businesses'],
+    }),
+
     getChannelOverView: builder.query({
       query: () => ({
         url: "/api/v1/communication/channels/",
@@ -40,6 +48,14 @@ export const authApi = baseApi.injectEndpoints({
         url: `/api/v1/communication/channels/${id}/`,
         method: "PATCH",
         body: { is_active },
+      }),
+      invalidatesTags: ['Channels'],
+    }),
+
+    deleteChannel: builder.mutation({
+      query: ({ id }) => ({
+        url: `/api/v1/communication/channels/${id}/`,
+        method: "DELETE",
       }),
       invalidatesTags: ['Channels'],
     }),
@@ -67,6 +83,23 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
       providesTags: ['Users'],
+    }),
+
+    userStatus: builder.mutation({
+      query: ({ id, is_active }) => ({
+        url: `/api/v1/auth/users/${id}/`,
+        method: "PATCH",
+        body: { is_active },
+      }),
+      invalidatesTags: ['Users'],
+    }),
+
+    userDelete: builder.mutation({
+      query: ({ id }) => ({
+        url: `/api/v1/auth/users/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Users'],
     }),
 
     createAutomation: builder.mutation({
@@ -147,5 +180,9 @@ export const {
   useSystemSettingsQuery,
   useUpdateSystemSettingsMutation,
   useAdminMiscellaneousQuery,
-  useUpdateAdminMiscellaneousMutation
+  useUpdateAdminMiscellaneousMutation,
+  useDeleteBusinessMutation,
+  useDeleteChannelMutation,
+  useUserStatusMutation,
+  useUserDeleteMutation
 } = authApi;

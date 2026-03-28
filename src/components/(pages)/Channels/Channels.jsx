@@ -5,7 +5,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import StatCard from '../../reusable_components/StatCard';
 import ReusableTable from '../../reusable_components/ReusableTable';
 import Reusable_Header from '../../reusable_components/Reusable_Header';
-import { useChannelStatusMutation, useGetChannelOverViewQuery } from '../../../redux/features/sijanSlice/sijan.slice';
+import { useChannelStatusMutation, useDeleteChannelMutation, useGetChannelOverViewQuery } from '../../../redux/features/sijanSlice/sijan.slice';
 
 
 
@@ -13,6 +13,7 @@ import { useChannelStatusMutation, useGetChannelOverViewQuery } from '../../../r
 const Channels = () => {
   const { data, isLoading, isError, error } = useGetChannelOverViewQuery();
   const [channelStatus] = useChannelStatusMutation();
+  const [deleteChannel] = useDeleteChannelMutation();
 
     const handleStatusChange = async (id, status) => {
 
@@ -23,6 +24,14 @@ const Channels = () => {
 
     try {
       await channelStatus(payload);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDeleteChannel = async (id) => {
+    try {
+      await deleteChannel({ id });
     } catch (error) {
       console.log(error);
     }
@@ -111,7 +120,7 @@ const Channels = () => {
       render: (record) => {
         const menuItems = [
              { key: '1', label: `${record.status === "Active" ? "Deactivate" : "Activate"}`, onClick: () => handleStatusChange(record.id, record.status === "Active" ? false : true) },
-          { key: '2', label: 'Delete', danger: true },
+          { key: '2', label: 'Delete', danger: true, onClick: () => handleDeleteChannel(record.id) },
         ];
 
         return (
@@ -120,7 +129,7 @@ const Channels = () => {
             menu={{ items: menuItems }}
             trigger={["click"]}
           >
-            <div className="cursor-pointer p-1 hover:bg-gray-100  rounded-full transition-colors inline-flex">
+            <div className="cursor-pointer p-1 bg-white  transition-colors inline-flex">
               <BsThreeDotsVertical className="text-gray-600" />
             </div>
           </Dropdown>
