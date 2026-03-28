@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiEdit2, FiUser, FiBriefcase, FiMail, FiPhone, FiMapPin, FiCheck, FiX } from "react-icons/fi";
 import Reusable_Header from "../../reusable_components/Reusable_Header";
+import { useAdminProfileQuery, useUpdateProfileMutation } from "../../../redux/features/sijanSlice/sijan.slice";
+import { toast } from "sonner";
 
 const Card = ({ children }) => (
   <div className="bg-white border border-[#60606080]/50 rounded-xl p-6 shadow-sm">
@@ -10,7 +12,7 @@ const Card = ({ children }) => (
 
 const InputField = ({ label, icon, value, name, onChange, disabled, textarea = false }) => (
   <div className="flex flex-col gap-1">
-    <label className="text-[16px] rob font-normal text-black">
+    <label className="text-[16px] rob text-black font-semibold">
       {label}
     </label>
 
@@ -24,7 +26,7 @@ const InputField = ({ label, icon, value, name, onChange, disabled, textarea = f
       {textarea ? (
         <textarea
           name={name}
-          value={value}
+          value={value || ""}
           onChange={onChange}
           disabled={disabled}
           rows={3}
@@ -36,7 +38,7 @@ const InputField = ({ label, icon, value, name, onChange, disabled, textarea = f
         <input
           type="text"
           name={name}
-          value={value}
+          value={value || ""}
           onChange={onChange}
           disabled={disabled}
           className={`w-full pl-6 pr-2 py-2 rob text-[14px] border rounded-md text-gray-600 transition-colors ${
@@ -50,19 +52,32 @@ const InputField = ({ label, icon, value, name, onChange, disabled, textarea = f
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  
-  const initialData = {
-    firstName: "Admin",
-    lastName: "User",
-    email: "admin@1source.chat",
-    phone: "+1 (555) 123-4567",
-    bio: "Tell us about yourself...",
-    role: "Platform Administrator",
-    department: "Operations",
-    location: "San Francisco, CA"
-  };
+  const { data, isLoading, isError, error } = useAdminProfileQuery();
+  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
 
-  const [profileData, setProfileData] = useState(initialData);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    phone_number: "",
+    bio: "",
+    title: "",
+    department: "",
+    location: ""
+  });
+
+  useEffect(() => {
+    if (data?.user) {
+      setProfileData({
+        name: data.user.name || "",
+        email: data.user.email || "",
+        phone_number: data.user.phone_number || "",
+        bio: data.user.bio || "",
+        title: data.user.title || "",
+        department: data.user.department || "",
+        location: data.user.location || ""
+      });
+    }
+  }, [data]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -72,15 +87,50 @@ const Profile = () => {
     }));
   };
 
-  const handleUpdate = () => {
-    console.log("Saving changes:", profileData);
-    setIsEditing(false);
+  const handleUpdate = async () => {
+    try {
+      await updateProfile(profileData).unwrap();
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to update profile");
+      console.error(err);
+    }
   };
 
   const handleCancel = () => {
-    setProfileData(initialData);
+    if (data?.user) {
+      setProfileData({
+        name: data.user.name || "",
+        email: data.user.email || "",
+        phone_number: data.user.phone_number || "",
+        bio: data.user.bio || "",
+        title: data.user.title || "",
+        department: data.user.department || "",
+        location: data.user.location || ""
+      });
+    }
     setIsEditing(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
+        <p className="text-red-500 text-lg font-semibold mb-2">Failed to load profile</p>
+        <p className="text-gray-500">{error?.data?.message || error?.status || "Something went wrong"}</p>
+      </div>
+    );
+  }
+
+  const user = data?.user || {};
 
   return (
     <div className="min-h-screen">
@@ -111,32 +161,37 @@ const Profile = () => {
               </button>
               <button 
                 onClick={handleUpdate}
-                className="flex items-center gap-2 bg-black text-white px-5 py-2 rounded-md text-sm hover:bg-gray-800 transition-all cursor-pointer"
+                disabled={isUpdating}
+                className="flex items-center gap-2 bg-black text-white px-5 py-2 rounded-md text-sm hover:bg-gray-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FiCheck size={14} />
-                Update
+                {isUpdating ? (
+                  <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full font-bold"></div>
+                ) : (
+                  <FiCheck size={14} />
+                )}
+                {isUpdating ? "Updating..." : "Update"}
               </button>
             </div>
           )}
         </div>
 
-        {/* Profile Picture */}
+        {/* Profile Info Header */}
         <Card>
           <h2 className="font-normal text-[20px] rob text-gray-900 mb-1">
-            Profile Picture
+            Account Status
           </h2>
           <p className="text-sm text-[#717182] mb-6 rob font-normal">
-            Upload a profile picture to personalize your account
+            Your current account role and status
           </p>
 
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-lg font-semibold">
-              {profileData.firstName[0]}{profileData.lastName[0]}
+            <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-lg font-semibold uppercase">
+              {profileData.name?.[0] || user.email?.[0] || "A"}
             </div>
             <div>
-              <p className="font-medium text-[16px] rob text-gray-900">{profileData.firstName} {profileData.lastName}</p>
+              <p className="font-medium text-[16px] rob text-gray-900">{profileData.name || "Administrator"}</p>
               <p className="rob text-[14px] text-gray-500">
-                {profileData.email}
+                {user.role_name} • {user.status}
               </p>
             </div>
           </div>
@@ -155,18 +210,11 @@ const Profile = () => {
             Update your personal details
           </p>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-1 gap-6">
             <InputField 
-              label="First Name" 
-              name="firstName"
-              value={profileData.firstName} 
-              onChange={handleInputChange}
-              disabled={!isEditing}
-            />
-            <InputField 
-              label="Last Name" 
-              name="lastName"
-              value={profileData.lastName} 
+              label="Full Name" 
+              name="name"
+              value={profileData.name} 
               onChange={handleInputChange}
               disabled={!isEditing}
             />
@@ -179,7 +227,7 @@ const Profile = () => {
               name="email"
               value={profileData.email}
               onChange={handleInputChange}
-              disabled={!isEditing}
+              disabled={true} // Email is usually non-editable for security
             />
           </div>
 
@@ -187,8 +235,8 @@ const Profile = () => {
             <InputField
               label="Phone Number"
               icon={<FiPhone size={14} />}
-              name="phone"
-              value={profileData.phone}
+              name="phone_number"
+              value={profileData.phone_number}
               onChange={handleInputChange}
               disabled={!isEditing}
             />
@@ -221,9 +269,9 @@ const Profile = () => {
 
           <div className="grid md:grid-cols-2 gap-6">
             <InputField 
-              label="Role" 
-              name="role"
-              value={profileData.role} 
+              label="Title / Role" 
+              name="title"
+              value={profileData.title} 
               onChange={handleInputChange}
               disabled={!isEditing}
             />

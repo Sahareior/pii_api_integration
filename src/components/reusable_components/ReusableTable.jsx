@@ -18,8 +18,8 @@ const ReusableTable = ({ data = [], columns }) => {
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const matchesSearch =
-        item.business.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.ownerName.toLowerCase().includes(searchText.toLowerCase());
+        item.business?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.ownerName?.toLowerCase().includes(searchText.toLowerCase());
 
       const matchesStatus =
         statusFilter === "all" || item.status === statusFilter;

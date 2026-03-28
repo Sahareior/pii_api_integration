@@ -2,21 +2,42 @@ import React, { useState } from 'react';
 import { UploadOutlined, UserOutlined, VideoCameraOutlined, SettingOutlined, RobotOutlined, AppstoreOutlined } from '@ant-design/icons';
 import { Avatar, Button, Dropdown, Layout, Menu, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LuBell, LuBuilding2, LuHash, LuLayoutDashboard, LuUsersRound } from "react-icons/lu";
+import { LuBell, LuBuilding2, LuHash, LuLayoutDashboard, LuUsersRound, LuLogOut } from "react-icons/lu";
 import ModalNotifications from './(pages)/profile/ModalNotifications';
 import Reusable_Modal from './reusable_components/Reusable_Modal';
 import { LiaRobotSolid } from 'react-icons/lia';
 import { GoGear } from 'react-icons/go';
+import { useDispatch } from 'react-redux';
+import { logout } from '../redux/features/auth/auth.slice';
+import Swal from 'sweetalert2';
 
 const { Header, Content, Footer, Sider } = Layout;
 
 const DashboardHome = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of your account!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#343F4F",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, logout!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(logout());
+        navigate("/");
+      }
+    });
+  };
 
   const sideBar = [
     {
@@ -81,7 +102,7 @@ const DashboardHome = () => {
       key: '4',
       label: 'Logout',
       danger: true,
-      onClick: () => navigate('/'),
+      onClick: handleLogout,
     },
   ];
 
@@ -101,16 +122,30 @@ const DashboardHome = () => {
           console.log(collapsed, type);
         }}
       >
-        <div className="demo-logo-vertical space-y-8" />
-        <img className='h-28 w-full object-cover' src="/logo.jpg" alt="Logo" />
-        <Menu
-          className='space-y-2 rob bg-amber-600 mt-9 font-normal text-[16px] my-7'
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          items={sideBar}
-          onClick={handleMenuClick}
-        />
+        <div className="flex flex-col h-full">
+            <div className="flex-1">
+                <div className="demo-logo-vertical space-y-8" />
+                <img className='h-28 w-full object-cover' src="/logo.jpg" alt="Logo" />
+                <Menu
+                className='space-y-2 rob bg-amber-600 mt-9 font-normal text-[16px] my-7'
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                items={sideBar}
+                onClick={handleMenuClick}
+                />
+            </div>
+            
+            <div className="px-4 pb-8">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer group"
+                >
+                  <LuLogOut size={20} className="group-hover:rotate-12 transition-transform" />
+                  <span className="rob text-[16px] font-medium">Logout</span>
+                </button>
+            </div>
+        </div>
       </Sider>
       <Layout>
         <Header

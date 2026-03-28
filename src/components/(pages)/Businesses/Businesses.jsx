@@ -5,95 +5,48 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import StatCard from '../../reusable_components/StatCard';
 import ReusableTable from '../../reusable_components/ReusableTable';
 import Reusable_Header from '../../reusable_components/Reusable_Header';
+import { useBusinessStatusMutation, useGetBusinessOverViewQuery } from '../../../redux/features/sijanSlice/sijan.slice';
 
- const businessDemoData = [
-  {
-    id: 1,
-    business: "TechCorp Solutions",
-    ownerName: "Sarah Johnson",
-    ownerEmail: "sarah@techcorp.com",
-    status: "Active",
-    teamSize: 45,
-    channels: 12,
-    created: "Jan 15, 2024",
-  },
-  {
-    id: 2,
-    business: "Digital Marketing Pro",
-    ownerName: "Michael Chen",
-    ownerEmail: "michael@digipro.com",
-    status: "Active",
-    teamSize: 28,
-    channels: 8,
-    created: "Feb 3, 2024",
-  },
-  {
-    id: 3,
-    business: "StartupHub Inc",
-    ownerName: "Emily Rodriguez",
-    ownerEmail: "emily@startuphub.io",
-    status: "Active",
-    teamSize: 12,
-    channels: 5,
-    created: "Feb 18, 2024",
-  },
-  {
-    id: 4,
-    business: "Global Ventures",
-    ownerName: "David Kim",
-    ownerEmail: "david@globalventures.com",
-    status: "Active",
-    teamSize: 78,
-    channels: 24,
-    created: "Dec 10, 2023",
-  },
-  {
-    id: 5,
-    business: "Creative Studio",
-    ownerName: "Lisa Anderson",
-    ownerEmail: "lisa@creativestudio.com",
-    status: "Suspended",
-    teamSize: 15,
-    channels: 6,
-    created: "Jan 28, 2024",
-  },
-  {
-    id: 6,
-    business: "FinTech Innovations",
-    ownerName: "Robert Taylor",
-    ownerEmail: "robert@fintech.com",
-    status: "Active",
-    teamSize: 92,
-    channels: 31,
-    created: "Nov 5, 2023",
-  },
-  {
-    id: 7,
-    business: "Local Bakery Co",
-    ownerName: "Amanda White",
-    ownerEmail: "amanda@bakery.com",
-    status: "Active",
-    teamSize: 3,
-    channels: 2,
-    created: "Mar 1, 2024",
-  },
-  {
-    id: 8,
-    business: "E-commerce Platform",
-    ownerName: "James Wilson",
-    ownerEmail: "james@ecommerce.com",
-    status: "Active",
-    teamSize: 34,
-    channels: 14,
-    created: "Feb 12, 2024",
-  },
-];
+
 
 
 const Businesses = () => {
+  const { data, isLoading, isError, error } = useGetBusinessOverViewQuery();
+  const [businessStatus] = useBusinessStatusMutation();
 
 
-      const columns = [
+  const handleStatusChange = async (id, status) => {
+
+    const payload = {
+      id: id,
+      is_active: status
+    }
+
+    try {
+      await businessStatus(payload);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
+        <p className="text-red-500 text-lg font-semibold mb-2">Failed to load businesses</p>
+        <p className="text-gray-500">{error?.data?.message || error?.status || "Something went wrong"}</p>
+      </div>
+    );
+  }
+
+  const columns = [
     {
       title: "Business",
       dataIndex: "business",
@@ -103,8 +56,9 @@ const Businesses = () => {
           <Avatar
             style={{ backgroundColor: "#000", color: "#fff" }}
             size={36}
+            src={record.picture}
           >
-            {record.business.slice(0, 2).toUpperCase()}
+            {record.business?.slice(0, 2).toUpperCase()}
           </Avatar>
           <span className="font-medium text-gray-800">
             {record.business}
@@ -118,7 +72,7 @@ const Businesses = () => {
       render: (_, record) => (
         <div>
           <div className="font-medium text-gray-800">
-            {record.ownerName}
+            {record.ownerName || "N/A"}
           </div>
           <div className="text-xs text-gray-500">
             {record.ownerEmail}
@@ -154,48 +108,60 @@ const Businesses = () => {
       title: "Created",
       dataIndex: "created",
       key: "created",
+      render: (date) => new Date(date).toLocaleDateString(),
     },
-  {
-    title: "Actions",
-    key: "actions",
-    align: "right",
-    render: () => {
-      const menuItems = [
-        { key: '1', label: 'Deactivate' },
-        { key: '2', label: 'Delete', danger: true },
-      ];
+    {
+      title: "Actions",
+      key: "actions",
+      align: "right",
+      render: (_, record) => {
+        const menuItems = [
+          { key: '1', label: `${record.status === "Active" ? "Deactivate" : "Activate"}`, onClick: () => handleStatusChange(record.id, record.status === "Active" ? false : true) },
+          { key: '2', label: 'Delete', danger: true },
+        ];
 
-      return (
-        <Dropdown
-          overlayStyle={{ width: '150px', background:'black' }}
-          menu={{ items: menuItems }}
-          trigger={["click"]}
-        >
-          <div className="cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors inline-flex">
-            <BsThreeDotsVertical className="text-gray-600" />
-          </div>
-        </Dropdown>
-      );
+        return (
+          <Dropdown
+            overlayStyle={{ width: '150px', background: 'black' }}
+            menu={{ items: menuItems }}
+            trigger={["click"]}
+          >
+            <div className="cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors inline-flex">
+              <BsThreeDotsVertical className="text-gray-600" />
+            </div>
+          </Dropdown>
+        );
+      },
     },
-  },
   ];
-    return (
-        <div className='space-y-12'>
-<Reusable_Header header={'Businesses'} subHeader={'Manage all businesses on your platform'} />
 
-             <div>
-     <div className='grid grid-cols-4 gap-14'>
-               {
-                [1,2,3,4].map(items => (
-                    <StatCard />
-                ))
-            }
-     </div>
+  const tableData = data?.workspaces?.map(space => ({
+    id: space.id,
+    business: space.name,
+    picture: space.picture,
+    ownerName: space.created_by?.name,
+    ownerEmail: space.created_by?.email,
+    status: space.is_active === true ? "Active" : "Inactive",
+    teamSize: space.users_count,
+    channels: space.channels_count,
+    created: space.created_at,
+    
+  })) || [];
 
+  return (
+    <div className='space-y-12'>
+      <Reusable_Header header={'Businesses'} subHeader={'Manage all businesses on your platform'} />
+
+      <div>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14'>
+          <StatCard title="Total Businesses" value={data?.total_workspaces} />
+          <StatCard title="Active Businesses" value={data?.total_active_workspaces} />
+          <StatCard title="Inactive Businesses" value={data?.total_inactive_workspaces} />
         </div>
-            <ReusableTable data={businessDemoData} columns={columns} />
-        </div>
-    );
+      </div>
+      <ReusableTable data={tableData} columns={columns} />
+    </div>
+  );
 };
 
 export default Businesses;

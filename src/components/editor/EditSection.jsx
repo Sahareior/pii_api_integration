@@ -2,12 +2,14 @@ import React, { useRef, useState } from "react";
 import Quill from "quill";
 import Editor from "./Editor";
 import Swal from "sweetalert2";
+import { useUpdateAdminMiscellaneousMutation } from "../../redux/features/sijanSlice/sijan.slice";
 
 
-const EditSection = ({ data, section }) => {
+const EditSection = ({ data, section, id }) => {
   const [range, setRange] = useState();
   const [lastChange, setLastChange] = useState();
   const [readOnly, setReadOnly] = useState(false);
+  const [updateAdminMiscellaneous, { isLoading: isUpdating }] = useUpdateAdminMiscellaneousMutation();
 
 
   const quillRef = useRef(null);
@@ -15,21 +17,19 @@ const EditSection = ({ data, section }) => {
   // Extract the actual content from the API response
   const getContentFromData = () => {
     if (!data) return "";
-    
-    // If data has a 'text' property, use that
-    if (typeof data === 'object' && data.text) {
-      return data.text;
-    }
-    
-    // If data is already a string, use it directly
-    if (typeof data === 'string') {
-      return data;
-    }
-    
-    return "";
+    return data;
   };
 
   const handleUpdate = async () => {
+    if (!id) {
+        Swal.fire({
+            icon: "error",
+            title: "Missing ID",
+            text: "Cannot update without a valid section ID.",
+        });
+        return;
+    }
+
     Swal.fire({
       title: "Are you sure?",
       text: "Do you want to update the changes?",
@@ -44,12 +44,10 @@ const EditSection = ({ data, section }) => {
           // Get the updated content from Quill editor
           const content = quillRef.current?.root.innerHTML || "";
           
-          // Prepare the data payload
-          const payload = { text: content };
-          
-          // Conditionally use the appropriate mutation based on section
-          let result;
-         
+          await updateAdminMiscellaneous({
+            id: id,
+            data: { value: content }
+          }).unwrap();
 
           // Show success message
           Swal.fire({
@@ -67,7 +65,7 @@ const EditSection = ({ data, section }) => {
             position: "top center",
             icon: "error",
             title: "Update failed!",
-            text: "There was an error updating the content. Please try again.",
+            text: error?.data?.message || "There was an error updating the content. Please try again.",
             showConfirmButton: false,
             timer: 1500,
           });
@@ -99,9 +97,10 @@ const EditSection = ({ data, section }) => {
         <button
           style={{ background: "#343F4F" }}
           onClick={handleUpdate}
-         
-          className="px-5 py-1 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isUpdating}
+          className="px-5 py-1 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
         >
+          {isUpdating && <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full font-bold"></div>}
           Update
         </button>
       </div>
