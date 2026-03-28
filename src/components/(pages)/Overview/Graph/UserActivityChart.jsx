@@ -9,17 +9,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { day: "Mon", users: 2200 },
-  { day: "Tue", users: 2800 },
-  { day: "Wed", users: 3100 },
-  { day: "Thu", users: 2900 },
-  { day: "Fri", users: 3500 },
-  { day: "Sat", users: 1800 },
-  { day: "Sun", users: 1500 },
-];
+const UserActivityChart = ({ data: chartData }) => {
+  const formattedData = chartData?.map(item => ({
+    ...item,
+    users: item.count
+  })) || [];
 
-const UserActivityChart = () => {
   return (
     <div className="bg-white rounded-xl border border-[#60606080]/50 p-6 w-full max-w-3xl">
       {/* Title */}
@@ -33,7 +28,7 @@ const UserActivityChart = () => {
       {/* Chart */}
       <div className="h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
+          <BarChart data={formattedData}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="#E5E7EB"

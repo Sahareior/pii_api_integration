@@ -1,5 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { logout } from "../features/auth/auth.slice";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL,
@@ -30,6 +29,6 @@ const baseQueryWithExpiryGuard = async (args, api, extraOptions) => {
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithExpiryGuard,
-  tagTypes: [],
+  tagTypes: ['Businesses','Channels','Profile','Automation','SystemSettings','AdminMiscellaneous'],
   endpoints: () => ({}),
 });

@@ -27,7 +27,24 @@ const ActivityItem = ({ title, description, time, color }) => {
   );
 };
 
-const RecentActivities = () => {
+const RecentActivities = ({ activities }) => {
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return "Just now";
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+    
+    return date.toLocaleDateString();
+  };
+
   return (
     <div className="bg-white border border-[#60606080]/50 rounded-xl p-6 shadow-sm w-full">
       {/* Header */}
@@ -41,26 +58,18 @@ const RecentActivities = () => {
 
       {/* Activity List */}
       <div>
-        <ActivityItem
-          title="TechCorp Solutions"
-          description="New business registered"
-          time="2 minutes ago"
-          color="#16A34A" // green
-        />
-
-        <ActivityItem
-          title="StartupHub Inc"
-          description="Reached message limit"
-          time="1 hour ago"
-          color="#EAB308" // yellow
-        />
-
-        <ActivityItem
-          title="Global Ventures"
-          description="Added 5 new team members"
-          time="2 hours ago"
-          color="#16A34A" // green
-        />
+        {activities?.map((activity) => (
+          <ActivityItem
+            key={activity.id}
+            title={activity.business_name}
+            description={activity.description}
+            time={getTimeAgo(activity.timestamp)}
+            color={activity.action.toLowerCase().includes("joined") ? "#16A34A" : "#3B82F6"}
+          />
+        ))}
+        {(!activities || activities.length === 0) && (
+          <p className="text-gray-500 text-center py-4 italic">No recent activity</p>
+        )}
       </div>
     </div>
   );
