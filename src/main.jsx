@@ -18,6 +18,10 @@ import Profile from './components/(pages)/profile/Profile.jsx';
 import Login from './components/auth/Login.jsx';
 import Terms from './components/(pages)/terms/Terms.jsx';
 import Privacy from './components/(pages)/privacy/Privacy.jsx';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from './redux/store.js';
+import { Toaster } from 'sonner';
 
 
 const router = createBrowserRouter([
@@ -57,12 +61,12 @@ const router = createBrowserRouter([
         element: <Profile />
       },
       {
-        path:'terms',
+        path: 'terms',
         element: <Terms />
       },
       {
-        path:'privacy',
-        element:<Privacy />
+        path: 'privacy',
+        element: <Privacy />
       }
     ]
   },
@@ -73,6 +77,11 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-      <RouterProvider router={router} />
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <Toaster />
+        <RouterProvider router={router} />
+      </PersistGate>
+    </Provider>
   </StrictMode>,
 )

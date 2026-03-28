@@ -13,7 +13,7 @@ const { Header, Content, Footer, Sider } = Layout;
 const DashboardHome = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isModalOpen,setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -31,7 +31,7 @@ const DashboardHome = () => {
     },
     {
       key: '/channels',
-      icon: <LuHash  size={20} />,
+      icon: <LuHash size={20} />,
       label: 'Channels',
     },
     {
@@ -41,12 +41,12 @@ const DashboardHome = () => {
     },
     {
       key: '/automations',
-       icon: <LiaRobotSolid  size={20} />,
+      icon: <LiaRobotSolid size={20} />,
       label: 'Automation & Bots',
     },
     {
       key: '/system',
-       icon: <GoGear size={20} />,
+      icon: <GoGear size={20} />,
       label: 'System Settings',
     },
   ];
@@ -88,7 +88,7 @@ const DashboardHome = () => {
   return (
     <Layout className='h-screen'>
       <Sider
-             style={{
+        style={{
           background: "#020203",
         }}
         width={250}
@@ -113,8 +113,8 @@ const DashboardHome = () => {
         />
       </Sider>
       <Layout>
-        <Header 
-          className='h-[100px] flex items-center px-8' 
+        <Header
+          className='h-[100px] flex items-center px-8'
           style={{ background: colorBgContainer, lineHeight: 'normal' }}
         >
           <div className='flex justify-between w-full items-center'>
@@ -125,14 +125,14 @@ const DashboardHome = () => {
             </div>
 
             <div className='flex items-center gap-6'>
-              <button onClick={()=> setIsModalOpen(true)} className='cursor-pointer relative text-gray-600 hover:text-black mt-2 transition-colors'>
+              <button onClick={() => setIsModalOpen(true)} className='cursor-pointer relative text-gray-600 hover:text-black mt-2 transition-colors'>
                 <LuBell className='relative' size={24} />
                 <p className='absolute -top-3 -right-3 rounded-full bg-[#FB2C36] text-white w-5 h-5 '>2</p>
               </button>
-              
+
               <Dropdown menu={{ items: profileMenu }} overlayClassName="dark-profile-dropdown" trigger={['click']}>
                 <div className='flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors'>
-                  <Avatar 
+                  <Avatar
                     size={38}
                     src='https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
                   />
@@ -159,11 +159,11 @@ const DashboardHome = () => {
         </Content>
       </Layout>
       <Reusable_Modal
-      setIsModalOpen={setIsModalOpen}
-      isModalOpen={isModalOpen}
-      children={
-        <ModalNotifications />
-      }
+        setIsModalOpen={setIsModalOpen}
+        isModalOpen={isModalOpen}
+        children={
+          <ModalNotifications />
+        }
       />
     </Layout>
   );
