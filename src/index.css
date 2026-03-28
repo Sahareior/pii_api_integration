@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Serif:ital,opsz,wght@0,8..144,100..900;1,8..144,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+
+
+.rob {
+ font-family: "Roboto Serif", serif;
+  font-weight: 500 !important;
+  font-variation-settings:
+    "wdth" 100,
+    "GRAD" 0;
+}
+
+/* Dark Profile Dropdown Styles */
+.dark-profile-dropdown .ant-dropdown-menu {
+  background-color: black !important;
+  border: 1px solid white !important;
+  padding: 4px !important;
+}
+
+.dark-profile-dropdown .ant-dropdown-menu-item {
+  color: white !important;
+  font-family: "Roboto Serif", serif !important;
+}
+
+.dark-profile-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #333 !important;
+}
+
+.dark-profile-dropdown .ant-dropdown-menu-item-active {
+  background-color: #333 !important;
+}
+
+
+.ant-menu-item{
+    padding: 27px;
+    
+}
+
+.ant-menu-item:hover {
+  background-color: #FFFFFF1A !important;  
+  color: rgb(39, 105, 89) !important;  
+}
+
+.ant-menu {
+    background-color: #020203 !important; 
+}
+
+.ant-menu-item-selected {
+    background-color: #FFFFFF1A !important; 
+    color: rgb(206, 214, 228) !important;  
+}
