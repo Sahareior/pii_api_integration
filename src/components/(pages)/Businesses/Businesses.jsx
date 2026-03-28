@@ -5,7 +5,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import StatCard from '../../reusable_components/StatCard';
 import ReusableTable from '../../reusable_components/ReusableTable';
 import Reusable_Header from '../../reusable_components/Reusable_Header';
-import { useBusinessStatusMutation, useGetBusinessOverViewQuery } from '../../../redux/features/sijanSlice/sijan.slice';
+import { useBusinessStatusMutation, useDeleteBusinessMutation, useGetBusinessOverViewQuery } from '../../../redux/features/sijanSlice/sijan.slice';
 
 
 
@@ -13,7 +13,7 @@ import { useBusinessStatusMutation, useGetBusinessOverViewQuery } from '../../..
 const Businesses = () => {
   const { data, isLoading, isError, error } = useGetBusinessOverViewQuery();
   const [businessStatus] = useBusinessStatusMutation();
-
+  const [deleteBusiness] = useDeleteBusinessMutation();
 
   const handleStatusChange = async (id, status) => {
 
@@ -24,6 +24,14 @@ const Businesses = () => {
 
     try {
       await businessStatus(payload);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDeleteBusiness = async (id) => {
+    try {
+      await deleteBusiness({ id });
     } catch (error) {
       console.log(error);
     }
@@ -117,7 +125,7 @@ const Businesses = () => {
       render: (_, record) => {
         const menuItems = [
           { key: '1', label: `${record.status === "Active" ? "Deactivate" : "Activate"}`, onClick: () => handleStatusChange(record.id, record.status === "Active" ? false : true) },
-          { key: '2', label: 'Delete', danger: true },
+          { key: '2', label: 'Delete', danger: true, onClick: () => handleDeleteBusiness(record.id) },
         ];
 
         return (
@@ -126,7 +134,7 @@ const Businesses = () => {
             menu={{ items: menuItems }}
             trigger={["click"]}
           >
-            <div className="cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors inline-flex">
+            <div className="cursor-pointer p-1 bg-white rounded-full transition-colors inline-flex">
               <BsThreeDotsVertical className="text-gray-600" />
             </div>
           </Dropdown>

@@ -5,13 +5,39 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import StatCard from '../../reusable_components/StatCard';
 import ReusableTable from '../../reusable_components/ReusableTable';
 import Reusable_Header from '../../reusable_components/Reusable_Header';
-import { useGetAllUsersQuery } from '../../../redux/features/sijanSlice/sijan.slice';
+import { useGetAllUsersQuery, useUserDeleteMutation, useUserStatusMutation } from '../../../redux/features/sijanSlice/sijan.slice';
 
 
 
 
 const Users = () => {
   const { data, isLoading, isError, error } = useGetAllUsersQuery();
+  const [userStatus] = useUserStatusMutation();
+  const [userDelete] = useUserDeleteMutation();
+
+
+    const handleDeleteUser = async (id) => {
+    try {
+      await userDelete({ id });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+      const handleStatusChange = async (id, status) => {
+
+    const payload = {
+      id: id,
+      is_active: status
+    }
+
+    try {
+      await userStatus(payload);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -95,19 +121,19 @@ const Users = () => {
         </p>
       )
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag
-          color={status?.toLowerCase() === "active" ? "green" : "default"}
-          className={`rounded-full px-3 ${status?.toLowerCase() === "active" ? "bg-green-200! text-green-900! rob border-transparent" : ""}`}
-        >
-          {status?.charAt(0).toUpperCase() + status?.slice(1)}
-        </Tag>
-      ),
-    },
+     {
+          title: "Status",
+          dataIndex: "status",
+          key: "status",
+          render: (status) => (
+            <Tag
+              color={status === "Active" ? "green" : "red"}
+              className="rounded-full px-3"
+            >
+              {status}
+            </Tag>
+          ),
+        },
     {
       title: "Last Active",
       dataIndex: "lastActive",
@@ -122,19 +148,19 @@ const Users = () => {
       title: "Actions",
       key: "actions",
       align: "right",
-      render: () => {
+      render: (record) => {
         const menuItems = [
-          { key: '1', label: 'Deactivate' },
-          { key: '2', label: 'Delete', danger: true },
+           { key: '1', label: `${record.status === "Active" ? "Deactivate" : "Activate"}`, onClick: () => handleStatusChange(record.id, record.status === "Active" ? false : true) },
+          { key: '2', label: 'Delete', danger: true, onClick: () => handleDeleteUser(record.id) },
         ];
 
         return (
           <Dropdown
-            overlayStyle={{ width: '150px', background: 'black' }}
+            overlayStyle={{ width: '150px'}}
             menu={{ items: menuItems }}
             trigger={["click"]}
           >
-            <div className="cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors inline-flex">
+            <div className="cursor-pointer p-1 bg-white  transition-colors inline-flex">
               <BsThreeDotsVertical className="text-gray-600" />
             </div>
           </Dropdown>
@@ -149,7 +175,7 @@ const Users = () => {
     email: user.email,
     role: user.role,
     business: user.created_workspaces?.[0] || "N/A",
-    status: user.status === "active" ? "Active" : "Inactive",
+   status: user.is_active === true ? "Active" : "Inactive",
     lastActive: user.last_active || "Never",
   })) || [];
 

@@ -10,7 +10,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const navigate = useNavigate();
-  const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading,error }] = useLoginMutation();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,10 +24,13 @@ const Login = () => {
       toast.success("Login successful!");
       navigate('/overview');
     } catch (err) {
-      toast.error(err?.data?.message || err?.data?.detail || "Login failed. Please check your credentials.");
+      toast.error(error?.data?.error || "Login failed. Please check your credentials.");
       console.error("Login error:", err);
     }
   }
+
+  console.log(error?.data?.error,"error");
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
