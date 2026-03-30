@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Avatar, Dropdown, Layout, Menu, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LuBell, LuBuilding2, LuHash, LuLayoutDashboard, LuUsersRound, LuLogOut } from "react-icons/lu";
+import {
+  LuBell,
+  LuBuilding2,
+  LuHash,
+  LuLayoutDashboard,
+  LuUsersRound,
+  LuLogOut
+} from "react-icons/lu";
 import ModalNotifications from './(pages)/profile/ModalNotifications';
 import Reusable_Modal from './reusable_components/Reusable_Modal';
 import { LiaRobotSolid } from 'react-icons/lia';
@@ -9,24 +16,42 @@ import { GoGear } from 'react-icons/go';
 import { useDispatch } from 'react-redux';
 import { logout } from '../redux/features/auth/auth.slice';
 import Swal from 'sweetalert2';
+import { useGetNotificationsQuery } from '../redux/features/notification/notification.api';
 import useNotificationSocket from '../hooks/useNotificationSocket';
 
-const { Header, Content, Footer, Sider } = Layout;
+
+const { Header, Content, Sider } = Layout;
 
 const DashboardHome = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const { notifications, markAllAsRead } = useNotificationSocket();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data } = useGetNotificationsQuery();
+  const {
+    notifications,
+    markAllAsReadLocal,
+  } = useNotificationSocket(data);
+
+  // Optimized unread count
+  const unreadCount = useMemo(() => {
+    return notifications.reduce(
+      (acc, n) => acc + (n.unread ? 1 : 0),
+      0
+    );
+  }, [notifications]);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  // Logout
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You will be logged out of your account!",
+      text: "You will be logged out!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#343F4F",
@@ -40,45 +65,24 @@ const DashboardHome = () => {
     });
   };
 
+  // Sidebar items
   const sideBar = [
-    {
-      key: '/overview',
-      icon: <LuLayoutDashboard size={20} />,
-      label: 'Dashboard',
-    },
-    {
-      key: '/business',
-      icon: <LuBuilding2 size={20} />,
-      label: 'Businesses',
-    },
-    {
-      key: '/channels',
-      icon: <LuHash size={20} />,
-      label: 'Channels',
-    },
-    {
-      key: '/users',
-      icon: <LuUsersRound size={20} />,
-      label: 'Users',
-    },
-    {
-      key: '/automations',
-      icon: <LiaRobotSolid size={20} />,
-      label: 'Automation & Bots',
-    },
-    {
-      key: '/system',
-      icon: <GoGear size={20} />,
-      label: 'System Settings',
-    },
+    { key: '/overview', icon: <LuLayoutDashboard size={20} />, label: 'Dashboard' },
+    { key: '/business', icon: <LuBuilding2 size={20} />, label: 'Businesses' },
+    { key: '/channels', icon: <LuHash size={20} />, label: 'Channels' },
+    { key: '/users', icon: <LuUsersRound size={20} />, label: 'Users' },
+    { key: '/automations', icon: <LiaRobotSolid size={20} />, label: 'Automation & Bots' },
+    { key: '/system', icon: <GoGear size={20} />, label: 'System Settings' },
   ];
 
-  // Derive the selected key from the current pathname
-  const selectedKey = sideBar.find(item => location.pathname.startsWith(item.key))?.key || '/overview';
+  const selectedKey =
+    sideBar.find(item => location.pathname.startsWith(item.key))?.key || '/overview';
 
   const handleMenuClick = (e) => {
     navigate(e.key);
   };
+
+  // Profile dropdown
   const profileMenu = [
     {
       key: '1',
@@ -95,10 +99,7 @@ const DashboardHome = () => {
       label: 'Terms of Service',
       onClick: () => navigate('terms'),
     },
-    {
-      type: 'divider',
-      style: { backgroundColor: '#444' }
-    },
+    { type: 'divider' },
     {
       key: '4',
       label: 'Logout',
@@ -108,27 +109,24 @@ const DashboardHome = () => {
   ];
 
   return (
-    <Layout className='h-screen'>
+    <Layout className="h-screen">
+      {/* Sidebar */}
       <Sider
-        style={{
-          background: "#020203",
-        }}
+        style={{ background: "#020203" }}
         width={250}
         breakpoint="lg"
         collapsedWidth="0"
-        onBreakpoint={broken => {
-          console.log(broken);
-        }}
-        onCollapse={(collapsed, type) => {
-          console.log(collapsed, type);
-        }}
       >
         <div className="flex flex-col h-full">
           <div className="flex-1">
-            <div className="demo-logo-vertical space-y-8" />
-            <img className='h-28 w-full object-cover' src="/logo.jpg" alt="Logo" />
+            <img
+              className="h-28 w-full object-cover"
+              src="/logo.jpg"
+              alt="Logo"
+            />
+
             <Menu
-              className='space-y-2 rob bg-amber-600 mt-9 font-normal text-[16px] my-7'
+              className="mt-9"
               theme="dark"
               mode="inline"
               selectedKeys={[selectedKey]}
@@ -137,74 +135,102 @@ const DashboardHome = () => {
             />
           </div>
 
+          {/* Logout button */}
           <div className="px-4 pb-8">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer group"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
             >
-              <LuLogOut size={20} className="group-hover:rotate-12 transition-transform" />
-              <span className="rob text-[16px] font-medium">Logout</span>
+              <LuLogOut size={20} />
+              <span>Logout</span>
             </button>
           </div>
         </div>
       </Sider>
-      <Layout>
-        <Header
-          className='h-[100px] flex items-center px-8'
-          style={{ background: colorBgContainer, lineHeight: 'normal' }}
-        >
-          <div className='flex justify-between w-full items-center'>
-            <div className='flex'>
-              <h3 className='text-[32px] rob flex items-center gap-3 font-semibold leading-tight'>
-                Welcome, <span className='text-[20px] rob mt-1 font-normal block'>Admin Dashboard</span>
-              </h3>
-            </div>
 
-            <div className='flex items-center gap-6'>
-              <button onClick={() => setIsModalOpen(true)} className='cursor-pointer relative text-gray-600 hover:text-black mt-2 transition-colors'>
-                <LuBell className='relative' size={24} />
-                {notifications.filter(n => n.unread).length > 0 && (
-                  <p className='absolute -top-3 -right-3 rounded-full bg-[#FB2C36] text-white w-5 h-5 flex items-center justify-center text-[10px]'>
-                    {notifications.filter(n => n.unread).length}
-                  </p>
+      {/* Main */}
+      <Layout>
+        {/* Header */}
+        <Header
+          className="h-[100px] flex items-center px-8"
+          style={{ background: colorBgContainer }}
+        >
+          <div className="flex justify-between w-full items-center">
+            <h3 className="text-[28px] font-semibold">
+              Welcome,
+              <span className="text-[18px] ml-2 font-normal">
+                Admin Dashboard
+              </span>
+            </h3>
+
+            {/* Right side */}
+            <div className="flex items-center gap-6">
+              {/* Notification */}
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="relative text-gray-600 hover:text-black"
+              >
+                <LuBell size={24} />
+
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 text-[10px] flex items-center justify-center rounded-full">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
 
-              <Dropdown menu={{ items: profileMenu }} overlayClassName="dark-profile-dropdown" trigger={['click']}>
-                <div className='flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors'>
+              {/* Profile */}
+              <Dropdown
+                menu={{ items: profileMenu }}
+                trigger={['click']}
+              >
+                <div className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg">
                   <Avatar
                     size={38}
-                    src='https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                    src="https://images.unsplash.com/photo-1570612861542-284f4c12e75f"
                   />
-                  <div className='flex flex-col justify-center'>
-                    <p className='rob font-semibold text-[16px] leading-tight'>Super Admin</p>
-                    <p className='rob text-[14px] text-gray-500 leading-tight'>admin@gmail.com</p>
+                  <div>
+                    <p className="font-semibold text-[14px]">
+                      Super Admin
+                    </p>
+                    <p className="text-[12px] text-gray-500">
+                      admin@gmail.com
+                    </p>
                   </div>
                 </div>
               </Dropdown>
             </div>
           </div>
         </Header>
-        <Content className='h-[82vh] overflow-auto' style={{ margin: '24px 16px 0' }}>
+
+        {/* Content */}
+        <Content
+          className="overflow-auto"
+          style={{ margin: '24px 16px 0' }}
+        >
           <div
             style={{
               padding: 24,
-              minHeight: 360,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
+              minHeight: 360,
             }}
           >
             <Outlet />
           </div>
         </Content>
       </Layout>
+
+      {/* Notification Modal */}
       <Reusable_Modal
-        setIsModalOpen={setIsModalOpen}
         isModalOpen={isModalOpen}
-        children={
-          <ModalNotifications notifications={notifications} markAllAsRead={markAllAsRead} />
-        }
-      />
+        setIsModalOpen={setIsModalOpen}
+      >
+        <ModalNotifications
+          notifications={notifications}
+          markAllAsReadLocal={markAllAsReadLocal}
+        />
+      </Reusable_Modal>
     </Layout>
   );
 };

@@ -1,127 +1,114 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 
-const useNotificationSocket = () => {
+const MAX_NOTIFICATIONS = 100;
+const RECONNECT_DELAY = 3000;
+
+const useNotificationSocket = (initialNotifications = []) => {
   const socketRef = useRef(null);
+  const reconnectRef = useRef(null);
+
   const [notifications, setNotifications] = useState([]);
   const [connected, setConnected] = useState(false);
-  
-  // Get token from Redux store
+
   const accessToken = useSelector((state) => state.auth.accessToken);
 
+  // 🔹 Set initial API data
   useEffect(() => {
-    const saved = localStorage.getItem("notifications");
-    if (saved) {
-      try {
-        setNotifications(JSON.parse(saved));
-      } catch (err) {
-        console.error("Error parsing saved notifications:", err);
-      }
+    if (initialNotifications?.length) {
+      const formatted = initialNotifications.map((item) => ({
+        id: item.id,
+        title: item.title,
+        desc: item.body,
+        time: item.created_at,
+        unread: !item.is_read,
+      }));
+
+      setNotifications(formatted.slice(0, MAX_NOTIFICATIONS));
     }
+  }, [initialNotifications]);
+
+  // 🔹 Add notification safely
+  const addNotification = useCallback((newItem) => {
+    setNotifications((prev) => {
+      const exists = prev.some((n) => n.id === newItem.id);
+      if (exists) return prev;
+
+      return [newItem, ...prev].slice(0, MAX_NOTIFICATIONS);
+    });
   }, []);
 
-  useEffect(() => {
+  // 🔹 WebSocket connection
+  const connect = useCallback(() => {
     if (!accessToken) return;
-    
-    const baseUrl = import.meta.env.VITE_WEBSOCKET_URL || "";
-    if (!baseUrl) {
-        console.warn("VITE_WEBSOCKET_URL is not defined in .env");
-        return;
-    }
 
-    const wsUrl = `${baseUrl}notifications/?token=${accessToken}`;
-    let socket = null;
+    const baseUrl = import.meta.env.VITE_WEBSOCKET_URL;
+    if (!baseUrl) return;
 
-    try {
-        socket = new WebSocket(wsUrl);
-        socketRef.current = socket;
+    const ws = new WebSocket(
+      `${baseUrl}notifications/?token=${accessToken}`
+    );
 
-        socket.onopen = () => {
-          console.log("WebSocket connected ✅");
-          setConnected(true);
-        };
+    socketRef.current = ws;
 
-        socket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            console.log("Notification received:", data);
-            
-            if (data.type === "notifications.init") {
-              const mappedItems = (data.items || []).map(item => ({
-                ...item,
-                desc: item.body,
-                time: item.created_at,
-                unread: !item.is_read
-              }));
-              setNotifications(mappedItems);
-              localStorage.setItem("notifications", JSON.stringify(mappedItems));
-            } else {
-              // Single new notification
-              const newNotification = {
-                ...data,
-                id: data.id || Date.now(),
-                desc: data.body || data.message || "New notification",
-                time: data.created_at || "Just now",
-                unread: true
-              };
-              setNotifications((prev) => {
-                const updated = [newNotification, ...prev];
-                localStorage.setItem("notifications", JSON.stringify(updated));
-                return updated;
-              });
-            }
-          } catch (err) {
-            console.error("Error parsing notification:", err, event.data);
-          }
-        };
+    ws.onopen = () => {
+      setConnected(true);
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
+    };
 
-        socket.onclose = (event) => {
-          // Only update state if this is still the current socket instance
-          if (socketRef.current === socket) {
-            console.log("WebSocket disconnected ❌", event.code);
-            setConnected(false);
-            socketRef.current = null;
-          }
-        };
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
 
-        socket.onerror = (error) => {
-          if (socketRef.current === socket) {
-            console.error("WebSocket error:", error);
-            setConnected(false);
-          }
-        };
-    } catch (error) {
-        console.error("Failed to establish WebSocket connection:", error);
-    }
+        if (data.type === "notifications.init") return;
 
-    return () => {
-      if (socket) {
-        // Remove handlers before closing to prevent Strict Mode warnings
-        socket.onopen = null;
-        socket.onmessage = null;
-        socket.onclose = null;
-        socket.onerror = null;
-        
-        if (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN) {
-          socket.close();
-        }
-        
-        if (socketRef.current === socket) {
-          socketRef.current = null;
-        }
+        addNotification({
+          id: data.id || Date.now(),
+          title: data.title || "Notification",
+          desc: data.body || data.message,
+          time: data.created_at || new Date().toISOString(),
+          unread: true,
+        });
+      } catch (err) {
+        console.error("WS error:", err);
       }
     };
-  }, [accessToken]);
 
-  // Clear all notifications
-  const markAllAsRead = () => {
-    setNotifications([]);
-    localStorage.removeItem("notifications");
+    ws.onclose = () => {
+      setConnected(false);
+
+      reconnectRef.current = setTimeout(() => {
+        connect();
+      }, RECONNECT_DELAY);
+    };
+
+    ws.onerror = () => {
+      ws.close();
+    };
+  }, [accessToken, addNotification]);
+
+  useEffect(() => {
+    connect();
+
+    return () => {
+      socketRef.current?.close();
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
+    };
+  }, [connect]);
+
+  // 🔹 Mark all read (local)
+  const markAllAsReadLocal = () => {
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, unread: false }))
+    );
   };
 
-  return { notifications, connected, markAllAsRead };
+  return {
+    notifications,
+    connected,
+    setNotifications,
+    markAllAsReadLocal,
+  };
 };
 
 export default useNotificationSocket;
-
-
