@@ -12,6 +12,7 @@ import Swal from 'sweetalert2';
 import useNotificationSocket from '../hooks/useNotificationSocket';
 import { FaPerson } from 'react-icons/fa6';
 import { BsPersonCircle } from 'react-icons/bs';
+import { useGetNotificationsQuery } from '../redux/features/notification/notification.api';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -20,7 +21,13 @@ const DashboardHome = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { notifications, markAllAsRead } = useNotificationSocket();
+  const { data } = useGetNotificationsQuery();
+  const {
+    notifications,
+    markAllAsReadLocal,
+  } = useNotificationSocket(data);
+  const unreadCount = data?.unread_count ?? 0;
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -174,7 +181,7 @@ const DashboardHome = () => {
 
               <Dropdown menu={{ items: profileMenu }} overlayClassName="dark-profile-dropdown" trigger={['click']}>
                 <div className='flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors'>
-                  <BsPersonCircle  size={24} className="text-gray-600" />
+                  <BsPersonCircle size={24} className="text-gray-600" />
                   <div className='flex flex-col justify-center'>
                     <p className='rob font-semibold text-[16px] leading-tight'>Super Admin</p>
                     <p className='rob text-[14px] text-gray-500 leading-tight'>admin@gmail.com</p>
@@ -201,7 +208,11 @@ const DashboardHome = () => {
         setIsModalOpen={setIsModalOpen}
         isModalOpen={isModalOpen}
         children={
-          <ModalNotifications notifications={notifications} markAllAsRead={markAllAsRead} />
+          <ModalNotifications
+            notifications={notifications}
+            markAllAsReadLocal={markAllAsReadLocal}
+            unreadCount={unreadCount}
+          />
         }
       />
     </Layout>
