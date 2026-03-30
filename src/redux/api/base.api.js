@@ -29,6 +29,6 @@ const baseQueryWithExpiryGuard = async (args, api, extraOptions) => {
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithExpiryGuard,
-  tagTypes: ['Businesses','Channels','Profile','Automation','SystemSettings','AdminMiscellaneous'],
+  tagTypes: ['Businesses','Channels','Profile','Automation','SystemSettings','AdminMiscellaneous', 'Notifications'],
   endpoints: () => ({}),
 });
