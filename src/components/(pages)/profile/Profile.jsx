@@ -16,9 +16,9 @@ const InputField = ({ label, icon, value, name, onChange, disabled, textarea = f
       {label}
     </label>
 
-    <div className="relative">
+    <div className="relative ">
       {icon && (
-        <span className="absolute left-3 top-3 text-gray-400">
+        <span className="absolute left-3  top-3 text-gray-400">
           {icon}
         </span>
       )}

@@ -10,6 +10,8 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../redux/features/auth/auth.slice';
 import Swal from 'sweetalert2';
 import useNotificationSocket from '../hooks/useNotificationSocket';
+import { FaPerson } from 'react-icons/fa6';
+import { BsPersonCircle } from 'react-icons/bs';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -160,8 +162,8 @@ const DashboardHome = () => {
               </h3>
             </div>
 
-            <div className='flex items-center gap-6'>
-              <button onClick={() => setIsModalOpen(true)} className='cursor-pointer relative text-gray-600 hover:text-black mt-2 transition-colors'>
+            <div className='flex items-center gap-2 justify-center'>
+              <button onClick={() => setIsModalOpen(true)} className='cursor-pointer relative text-gray-600 hover:text-black mt-1 transition-colors'>
                 <LuBell className='relative' size={24} />
                 {notifications.filter(n => n.unread).length > 0 && (
                   <p className='absolute -top-3 -right-3 rounded-full bg-[#FB2C36] text-white w-5 h-5 flex items-center justify-center text-[10px]'>
@@ -172,10 +174,7 @@ const DashboardHome = () => {
 
               <Dropdown menu={{ items: profileMenu }} overlayClassName="dark-profile-dropdown" trigger={['click']}>
                 <div className='flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition-colors'>
-                  <Avatar
-                    size={38}
-                    src='https://images.unsplash.com/flagged/photo-1570612861542-284f4c12e75f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                  />
+                  <BsPersonCircle  size={24} className="text-gray-600" />
                   <div className='flex flex-col justify-center'>
                     <p className='rob font-semibold text-[16px] leading-tight'>Super Admin</p>
                     <p className='rob text-[14px] text-gray-500 leading-tight'>admin@gmail.com</p>
